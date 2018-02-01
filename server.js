@@ -3,9 +3,12 @@ var qr = require('qr-image');
 var fs = require('fs');
 var moment = require('moment');
 var bodyParser = require('body-parser');
-var app = express();
 
+var app = express();
 app.use(bodyParser.json());
+
+var SUCCESS = 'success';
+var FAILURE = 'failure';
 
 app.get("/generateQR", function(req, res){
 	let QRCodeDir = __dirname + '/QRCodes';
@@ -18,7 +21,7 @@ app.get("/generateQR", function(req, res){
 	var encodedTpxIDs = encodedText.split("\n");
 
 	for(var i=0;i<encodedTpxIDs.length;i++){
-		console.log(encodedTpxIDs[i]);
+		//console.log(encodedTpxIDs[i]);
 		var values = encodedTpxIDs[i].split(" ");
 		var key = values[0];
 		var value = values[1];
@@ -26,7 +29,7 @@ app.get("/generateQR", function(req, res){
 		var qr_image = qr.image(value, { type: 'png', ec_level: 'H', size: 10});
 		qr_image.pipe(fs.createWriteStream(imageName));
 	}
-	res.send(encodedTpxIDs);
+	res.status(200).json({"status":SUCCESS, "value":encodedTpxIDs});
 	// var qr_svg = qr.image('I love QR!', { type: 'png' });
 	// qr_svg.pipe(require('fs').createWriteStream('./QRCodes/i_love_qr.png'));
 	// var svg_string = qr.imageSync('I love QR!', { type: 'png' });
@@ -42,14 +45,14 @@ app.get("/generateQR", function(req, res){
 
 app.post("/register", function(req, res){
 	if(!(req.body && req.body.tpxID)){
-		console.log("ERROR CONDITION");
-		res.status(400).json({"status":"failure", "message":"Value missing"});
+		//console.log("ERROR CONDITION");
+		res.status(400).json({"status":FAILURE, "message":"Value missing"});
 	} else {
-		console.log(req.body.tpxID);
+		//console.log(req.body.tpxID);
 		var timestamp = moment().format('HH:mm:ss');
 		var outputText = req.body.tpxID + ',' + timestamp + '\n';
 		fs.appendFileSync('output.csv', outputText, 'utf8');
-		res.status(200).json({"status":"success", "message":"Registration successful"});
+		res.status(200).json({"status":SUCCESS, "message":"Registration successful"});
 	}
 });
 
